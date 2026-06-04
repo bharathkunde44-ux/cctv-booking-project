@@ -14,6 +14,7 @@ import {
   MapPin,
   Menu,
   MonitorSmartphone,
+  Navigation,
   Phone,
   ShieldCheck,
   Share2,
@@ -33,6 +34,8 @@ const OWNER_PHONE_DISPLAY = "+91 98490 21269";
 const OWNER_EMAIL = "thrinainaelectronics@gmail.com";
 const COMPANY_ADDRESS =
   "Hno:- 30-1347, Lane no :- 12, Vinayak Nagar, Neredmet, Medchal-Malkajgiri District";
+const COMPANY_MAP_URL = "https://maps.app.goo.gl/Ui9y7ftXS2G8fzFk9";
+const COMPANY_MAP_COORDS = "17.4685886,78.5402767";
 const serviceTypes = ["New CCTV Installation", "Repair", "Maintenance", "Camera Upgrade"];
 
 const emptyBooking = {
@@ -409,8 +412,19 @@ function ContactPage({ contact, setContact, alert, onSubmit }) {
               className="h-80 w-full border-0"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              src={`https://www.google.com/maps?q=${encodeURIComponent(COMPANY_ADDRESS)}&output=embed`}
+              src={`https://www.google.com/maps?q=${encodeURIComponent(COMPANY_MAP_COORDS)}&z=17&output=embed`}
             />
+            <div className="p-5">
+              <a
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-sky-300/30 bg-sky-300/10 px-5 py-3 font-black text-sky-100 transition hover:bg-sky-300/15"
+                href={COMPANY_MAP_URL}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Navigation size={18} />
+                Open in Google Maps
+              </a>
+            </div>
           </div>
         </div>
         <form onSubmit={onSubmit} className="glass grid gap-5 rounded-[2rem] p-6 md:grid-cols-2 md:p-8">
