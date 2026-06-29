@@ -24,11 +24,32 @@ app.use(
     },
   })
 );
-const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:3000", "http://localhost:3001"].filter(Boolean);
+const normalizeOrigin = (value) => {
+  if (!value) return "";
+  try {
+    return new URL(value).origin;
+  } catch (error) {
+    return String(value).replace(/\/+$/, "");
+  }
+};
+
+const envOrigins = [process.env.FRONTEND_URL, process.env.CORS_ORIGINS, process.env.RENDER_EXTERNAL_URL]
+  .filter(Boolean)
+  .flatMap((value) => String(value).split(","));
+const allowedOrigins = new Set(
+  [
+    ...envOrigins,
+    "https://cctv-booking-project.onrender.com",
+    "http://localhost:3000",
+    "http://localhost:3001",
+  ]
+    .map((origin) => normalizeOrigin(origin.trim()))
+    .filter(Boolean)
+);
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.has(normalizeOrigin(origin))) {
         return callback(null, true);
       }
       callback(new Error("CORS policy does not allow access from the specified origin."));

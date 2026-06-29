@@ -10,6 +10,8 @@ services:
         value: production
       - key: FRONTEND_URL
         value: https://cctv-booking-project.onrender.com
+      - key: CORS_ORIGINS
+        value: https://cctv-booking-project.onrender.com
       - key: DB_HOST
         sync: false
       - key: DB_PORT
