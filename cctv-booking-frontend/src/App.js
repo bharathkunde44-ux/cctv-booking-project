@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import {
   Activity,
   ArrowRight,
@@ -23,6 +24,7 @@ import {
   Wrench,
   X,
 } from "lucide-react";
+import AdminApp from "./admin/AdminApp";
 import "./App.css";
 
 const API_BASE =
@@ -74,7 +76,7 @@ const fadeUp = {
   show: { opacity: 1, y: 0, transition: { duration: 0.65, ease: "easeOut" } },
 };
 
-function App() {
+function PublicSite() {
   const [page, setPage] = useState("home");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [booking, setBooking] = useState(emptyBooking);
@@ -186,6 +188,18 @@ function App() {
   );
 }
 
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/admin/*" element={<AdminApp />} />
+        <Route path="/*" element={<PublicSite />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
 function Header({ page, navigate, mobileOpen, setMobileOpen }) {
   const nav = [
     ["home", "Home"],
@@ -205,6 +219,9 @@ function Header({ page, navigate, mobileOpen, setMobileOpen }) {
         </button>
 
         <div className="hidden shrink-0 items-center gap-3 2xl:flex">
+          <a className="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white hover:bg-white/10" href="/admin">
+            Admin
+          </a>
           <a className="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white hover:bg-white/10" href={`tel:+91${OWNER_PHONE}`}>
             Call Now
           </a>
@@ -234,6 +251,9 @@ function Header({ page, navigate, mobileOpen, setMobileOpen }) {
 
       {mobileOpen && (
         <div className="mx-auto grid w-[min(1180px,92vw)] gap-2 pb-4 2xl:hidden">
+          <a href="/admin" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left font-semibold">
+            Admin Login
+          </a>
           {nav.map(([id, label]) => (
             <button key={id} onClick={() => navigate(id)} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left font-semibold">
               {label}

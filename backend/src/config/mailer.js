@@ -78,6 +78,65 @@ async function sendOwnerEmail(subject, details, attachments = []) {
   });
 }
 
+async function sendCustomerEmail(to, subject, details) {
+  if (!to) {
+    return;
+  }
+
+  if (process.env.RESEND_API_KEY) {
+    await sendCustomerEmailWithResend(to, subject, details);
+    return;
+  }
+
+  const smtpMissing = ["GMAIL_USER", "GMAIL_APP_PASSWORD"].filter((key) => !process.env[key]);
+  if (smtpMissing.length > 0) {
+    console.warn(`Customer email skipped. Missing environment variables: ${smtpMissing.join(", ")}`);
+    return;
+  }
+
+  const transporter = createTransporter();
+  const info = await transporter.sendMail({
+    from: `"CCTV Service Team" <${process.env.GMAIL_USER}>`,
+    to,
+    subject,
+    text: formatDetails(details),
+    html: formatHtml(details),
+  });
+
+  console.log("Customer email sent", { to, subject, messageId: info.messageId });
+}
+
+async function sendCustomerEmailWithResend(to, subject, details) {
+  const from = process.env.EMAIL_FROM || "CCTV Service Website <onboarding@resend.dev>";
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from,
+      to: [to],
+      subject,
+      text: formatDetails(details),
+      html: formatHtml(details),
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || `Resend customer email failed with status ${response.status}`);
+  }
+
+  console.log("Customer email sent", { provider: "resend", to, subject, messageId: data.id });
+}
+
+function sendCustomerEmailInBackground(to, subject, details) {
+  sendCustomerEmail(to, subject, details).catch((error) => {
+    console.error("Customer email failed:", error.message);
+  });
+}
+
 async function formatResendAttachments(attachments) {
   return Promise.all(
     attachments.map(async (attachment) => ({
@@ -129,4 +188,6 @@ function sendOwnerEmailInBackground(subject, details, attachments = []) {
 module.exports = {
   sendOwnerEmail,
   sendOwnerEmailInBackground,
+  sendCustomerEmail,
+  sendCustomerEmailInBackground,
 };

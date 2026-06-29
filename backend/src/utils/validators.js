@@ -16,9 +16,18 @@ function validateEmail(email) {
 }
 
 function validateStatus(status) {
-  const allowed = ["Pending", "Confirmed", "Completed", "Cancelled"];
+  const allowed = ["Pending", "Confirmed", "Scheduled", "In Progress", "Completed", "Cancelled"];
   if (!allowed.includes(status)) {
     const error = new Error("Invalid status");
+    error.status = 400;
+    throw error;
+  }
+}
+
+function validateMaintenanceStatus(status) {
+  const allowed = ["Pending", "Assigned", "In Progress", "Completed"];
+  if (!allowed.includes(status)) {
+    const error = new Error("Invalid maintenance status");
     error.status = 400;
     throw error;
   }
@@ -28,4 +37,5 @@ module.exports = {
   requireFields,
   validateEmail,
   validateStatus,
+  validateMaintenanceStatus,
 };

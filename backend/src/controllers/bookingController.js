@@ -36,6 +36,9 @@ async function createBooking(req, res, next) {
       serviceType,
     });
 
+    // Format date fields properly - convert ISO datetime to date-only format (YYYY-MM-DD)
+    const formattedPreferredDate = preferredDate ? new Date(preferredDate).toISOString().split("T")[0] : preferredDate;
+
     const [result] = await pool.execute(
       `INSERT INTO bookings
         (full_name, phone, email, service_address, service_type, cameras, preferred_date, preferred_time, message)
@@ -47,7 +50,7 @@ async function createBooking(req, res, next) {
         serviceAddress,
         serviceType,
         Number(cameras),
-        preferredDate,
+        formattedPreferredDate,
         preferredTime,
         message || null,
       ]
@@ -58,6 +61,11 @@ async function createBooking(req, res, next) {
       insertId: result.insertId,
       affectedRows: result.affectedRows,
     });
+
+    await pool.execute(
+      "INSERT INTO admin_notifications (type, title, message, entity_type, entity_id) VALUES (?, ?, ?, ?, ?)",
+      ["booking", "New booking", `${fullName} requested ${serviceType}`, "booking", result.insertId]
+    ).catch((error) => console.warn("Booking notification skipped:", error.message));
 
     sendOwnerEmailInBackground("New CCTV Booking Request", {
       "Booking ID": result.insertId,

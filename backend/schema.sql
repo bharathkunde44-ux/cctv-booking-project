@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   preferred_date DATE NOT NULL,
   preferred_time TIME NOT NULL,
   message TEXT,
-  status ENUM('Pending', 'Confirmed', 'Completed', 'Cancelled') NOT NULL DEFAULT 'Pending',
+  status ENUM('Pending', 'Confirmed', 'Scheduled', 'In Progress', 'Completed', 'Cancelled') NOT NULL DEFAULT 'Pending',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_bookings_search (full_name, phone, email),
@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS maintenance_requests (
   issue_image VARCHAR(255),
   preferred_visit_date DATE NOT NULL,
   message TEXT,
-  status ENUM('Pending', 'Confirmed', 'Completed', 'Cancelled') NOT NULL DEFAULT 'Pending',
+  priority ENUM('Low', 'Medium', 'High', 'Urgent') NOT NULL DEFAULT 'Medium',
+  status ENUM('Pending', 'Assigned', 'In Progress', 'Completed') NOT NULL DEFAULT 'Pending',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_maintenance_search (name, phone, email),
@@ -48,10 +49,34 @@ CREATE TABLE IF NOT EXISTS contacts (
 
 CREATE TABLE IF NOT EXISTS admin_users (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(100) NOT NULL UNIQUE,
   name VARCHAR(120) NOT NULL,
   email VARCHAR(160) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
   role ENUM('Owner', 'Staff') NOT NULL DEFAULT 'Owner',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS admin_login_history (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  admin_id INT NOT NULL,
+  ip_address VARCHAR(80),
+  user_agent TEXT,
+  logged_in_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_admin_login_history_admin (admin_id),
+  CONSTRAINT fk_admin_login_history_user FOREIGN KEY (admin_id) REFERENCES admin_users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS admin_notifications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  type ENUM('booking', 'service', 'status', 'system') NOT NULL DEFAULT 'system',
+  title VARCHAR(160) NOT NULL,
+  message TEXT NOT NULL,
+  entity_type VARCHAR(40),
+  entity_id INT,
+  is_read BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_admin_notifications_read (is_read),
+  INDEX idx_admin_notifications_created (created_at)
 );

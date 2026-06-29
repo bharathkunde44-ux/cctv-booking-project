@@ -24,9 +24,15 @@ app.use(
     },
   })
 );
+const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:3000", "http://localhost:3001"].filter(Boolean);
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      callback(new Error("CORS policy does not allow access from the specified origin."));
+    },
   })
 );
 app.use(express.json({ limit: "1mb" }));
